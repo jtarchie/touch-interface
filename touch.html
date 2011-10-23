@@ -1,0 +1,64 @@
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	<script src="https://raw.github.com/DmitryBaranovskiy/raphael/master/raphael.js"></script>
+</head>
+<body>
+	<script>
+	$(function() {
+		var $document = $(document);
+
+		var menuWidth = 50,
+			strokeWidth = 1,
+			displayWidth = ($document.width() - menuWidth - 3 * strokeWidth) / 2,
+			displayHeight = ($document.height() - 3 * strokeWidth) / 2;
+			
+		var paper = Raphael(0, 0, $document.width(), $document.height()),
+			canvas = paper.rect(0, 0 , $document.width(), $document.height()).attr('fill','#000000'),
+			instructionsContainer = paper.rect(0, 0, 50, $document.height()).attr('stroke', '#c0c0c0').attr('fill', '#ffffff'),
+			programContainer = paper.rect(menuWidth +  strokeWidth, 0, displayWidth, displayHeight).attr('stroke', '#fff'),
+			designContainer = paper.rect(menuWidth +  strokeWidth + displayWidth, 0, displayWidth, displayHeight).attr('stroke', '#fff'),
+			runContainer = paper.rect(menuWidth +  strokeWidth, displayHeight, displayWidth *2, displayHeight * 2).attr('stroke', '#fff'),
+			touches = {};
+
+		function operateTouches(event, func) {
+			event.preventDefault();
+			for(var i = 0; i < event.changedTouches.length; i++) {
+				var touch = event.changedTouches[i];
+				func(touch);
+			}
+		}
+		
+
+		canvas.touchstart(function(event) {
+			operateTouches(event, function(touch){
+				touches[touch.identifier] = paper.circle(touch.pageX, touch.pageY, 10).attr('fill', '#ffffff');
+			});
+		});
+
+		canvas.touchmove(function(event) {
+			operateTouches(event, function(touch){
+				touches[touch.identifier].animate({
+					cx: touch.pageX,
+					cy: touch.pageY
+				}, 10);
+			});
+		});
+
+		canvas.touchend(function(event) {
+			operateTouches(event, function(touch){
+				touches[touch.identifier].remove();
+				delete touches[touch.identifier];
+			});
+		});
+		
+		canvas.touchcancel(function(event) {
+			operateTouches(event, function(touch){
+				touches[touch.identifier].remove();
+				delete touches[touch.identifier];
+			});
+		});
+	});
+	</script>
+</body>
+</html>
