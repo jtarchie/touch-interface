@@ -2,63 +2,93 @@
 <head>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 	<script src="https://raw.github.com/DmitryBaranovskiy/raphael/master/raphael.js"></script>
+	<script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
 </head>
 <body>
-	<script>
-	$(function() {
-		var $document = $(document);
+  <script type="text/coffeescript">
+    class TouchEventsDelegator
+      constructor: (@owner) ->
+        @touches = {}
+        @owner.touchstart (event) => @operateTouch event, @start
+        @owner.touchmove (event) => @operateTouch event, @move
+        @owner.touchend (event) => @operateTouch event, @end
+        @owner.touchcancel (event) => @operateTouch event, @end
 
-		var menuWidth = 50,
-			strokeWidth = 1,
-			displayWidth = ($document.width() - menuWidth - 3 * strokeWidth) / 2,
-			displayHeight = ($document.height() - 3 * strokeWidth) / 2;
-			
-		var paper = Raphael(0, 0, $document.width(), $document.height()),
-			canvas = paper.rect(0, 0 , $document.width(), $document.height()).attr('fill','#000000'),
-			instructionsContainer = paper.rect(0, 0, 50, $document.height()).attr('stroke', '#c0c0c0').attr('fill', '#ffffff'),
-			programContainer = paper.rect(menuWidth +  strokeWidth, 0, displayWidth, displayHeight).attr('stroke', '#fff'),
-			designContainer = paper.rect(menuWidth +  strokeWidth + displayWidth, 0, displayWidth, displayHeight).attr('stroke', '#fff'),
-			runContainer = paper.rect(menuWidth +  strokeWidth, displayHeight, displayWidth *2, displayHeight * 2).attr('stroke', '#fff'),
-			touches = {};
+      operateTouch: (event, func) ->
+        event.preventDefault()
+        func(touch) for touch in event.changedTouches
 
-		function operateTouches(event, func) {
-			event.preventDefault();
-			for(var i = 0; i < event.changedTouches.length; i++) {
-				var touch = event.changedTouches[i];
-				func(touch);
-			}
-		}
-		
+    class ApplicationTouchEvents extends TouchEventsDelegator
+      start: (touch) ->
+        @touches[touch.identifier] = @owner.circle(touch.pageX, touch.pageY, 10).attr('fill', '#ffffff')
+      move: (touch) ->
+        @touches[touch.identifier].animate(
+          cx: touch.pageX,
+          cy: touch.pageY
+        , 10)
+      end: (touch) ->
+        @touches[touch.identifier].remove();
+        delete touches[touch.identifier];
+        
+    class Application
+      constructor: ->
+        @document = $(document)
+        @paper = Raphael(0, 0, @width(), @height())
+        @canvas = @paper.rect(0, 0, @width(), @height()).attr(
+          fill: '#000000'
+        )
 
-		canvas.touchstart(function(event) {
-			operateTouches(event, function(touch){
-				touches[touch.identifier] = paper.circle(touch.pageX, touch.pageY, 10).attr('fill', '#ffffff');
-			});
-		});
+      run: ->
+        @instructionPanel = new InstructionPanel(this)
+        @programPanel = new ProgramPanel(this)
+        @designPanel = new DesignPanel(this)
+        @runPanel = new RunPanel(this)
+        
+        new ApplicationTouchEvents(@canvas)
+          
+      width: -> @document.width()
+      height: -> @document.height()
 
-		canvas.touchmove(function(event) {
-			operateTouches(event, function(touch){
-				touches[touch.identifier].animate({
-					cx: touch.pageX,
-					cy: touch.pageY
-				}, 10);
-			});
-		});
+    class Panel
+      constructor: (@app) ->
+        @draw()
+        
+    class InstructionPanel extends Panel
+      @width: 50
+      draw: ->
+        @container = @app.paper.rect(0, 0, InstructionPanel.width, app.height()).attr(
+          stroke: '#c0c0c0',
+          fill: '#fff'
+        )
+    
+    class ProgramPanel extends Panel
+      draw: ->
+        @container = @app.paper.rect(
+          InstructionPanel.width, 0,
+          app.width() / 2, app.height() / 2
+        ).attr(
+          'stroke': '#c0c0c0'
+        )
+        
+    class DesignPanel extends Panel
+      draw: ->
+        @container = @app.paper.rect(
+          app.width() / 2 + InstructionPanel.width, 0,
+          app.width() / 2, app.height() / 2
+        ).attr(
+          'stroke': '#c0c0c0'
+        )
 
-		canvas.touchend(function(event) {
-			operateTouches(event, function(touch){
-				touches[touch.identifier].remove();
-				delete touches[touch.identifier];
-			});
-		});
-		
-		canvas.touchcancel(function(event) {
-			operateTouches(event, function(touch){
-				touches[touch.identifier].remove();
-				delete touches[touch.identifier];
-			});
-		});
-	});
-	</script>
+    class RunPanel extends Panel
+      draw: ->
+        @container = @app.paper.rect(
+          InstructionPanel.width, app.height() / 2,
+          app.width() * 2, app.height() * 2
+        ).attr(
+          'stroke': '#c0c0c0'
+        )
+    app = new Application()
+    $( -> app.run())
+  </script>
 </body>
 </html>
