@@ -6,4 +6,6 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require_tree ./events/
+//= require panels/panel
 //= require_tree .
