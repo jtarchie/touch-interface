@@ -10,9 +10,11 @@ class @InstructionPanel extends Panel
   draw: ->
     
 class @InstructionPanelTouchEvents extends TouchEventsDelegator
-  start: (touch) ->
-    @owner.attr('fill', '#c0c0c0') if @contains(touch)
-  move: (touch) ->
-    @start(touch)
-  end: (touch) ->
-    @owner.attr('fill', '#fff') if @contains(touch)
+  start: ->
+    @owner.attr('fill', '#c0c0c0')
+  move: -> @start()
+  leave: -> @end()
+  enter: -> @start()
+  end: ->
+    if @touches.length == 1
+      @owner.attr('fill', '#fff')

@@ -18,13 +18,21 @@ class @Application
   height: -> @document.height()
 
 class @ApplicationTouchEvents extends TouchEventsDelegator
+  dots: {}
   start: (touch) ->
-    @touches[touch.identifier] = @owner.paper.circle(touch.pageX, touch.pageY, 10).attr('fill', '#ffffff')
+    @dots[touch.identifier] = @owner.paper.circle(touch.pageX, touch.pageY, 10).attr('fill', '#ffffff')
   move: (touch) ->
-    @touches[touch.identifier].animate(
+    @dots[touch.identifier].animate(
               cx: touch.pageX,
               cy: touch.pageY
             , 10)
   end: (touch) ->
-    @touches[touch.identifier].remove();
-    delete @touches[touch.identifier];
+    dot = @dots[touch.identifier]
+    dot.animate(
+      {
+        cy: $(document).height(),
+      },
+      @dots[touch.identifier].attr("cy") * 10,
+      "bounce", => dot.remove()
+    )
+    delete @dots[touch.identifier]

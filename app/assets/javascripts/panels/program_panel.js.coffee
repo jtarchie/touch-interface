@@ -12,9 +12,11 @@ class @ProgramPanel extends Panel
   draw: ->
 
 class @ProgramPanelTouchEvents extends TouchEventsDelegator
-  start: (touch) ->
-    @owner.attr('fill', '#ff0000') if @contains(touch)
-  move: (touch) ->
-    @start(touch)
-  end: (touch) ->
-    @owner.attr('fill', '#000000') if @contains(touch)
+  start: ->
+    @owner.attr('fill', '#ff0000')
+  move: -> @start()
+  leave: -> @end()
+  enter: -> @start()
+  end: ->
+    if @touches.length == 1
+      @owner.attr('fill', '#000000')

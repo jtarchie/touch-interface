@@ -11,9 +11,11 @@ class @DesignPanel extends Panel
     new DesignPanelTouchEvents(@container)
 
 class @DesignPanelTouchEvents extends TouchEventsDelegator
-  start: (touch) ->
-    @owner.attr('fill', '#0000ff') if @contains(touch)
-  move: (touch) ->
-    @start(touch)
-  end: (touch) ->
-    @owner.attr('fill', '#000000') if @contains(touch)
+  start: ->
+    @owner.attr('fill', '#0000ff')
+  move: -> @start()
+  leave: -> @end()
+  enter: -> @start()
+  end: ->
+    if @touches.length == 1
+      @owner.attr('fill', '#000000')
